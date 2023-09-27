@@ -1,12 +1,15 @@
 import requests
 import time
 import datetime
+from decouple import config
 from fastapi import FastAPI
 from fastapi_utils.tasks import repeat_every
 
 from stripe_commons import list_events, list_subscriptions, upcoming_invoice, reset_last_event
 from json_commons import append_to_json_file, get_last_posted_event, list_posted_events
 
+
+WEBHOOK_URL=config('WEBHOOK_URL' ,'http://localhost:8003/app/billing/v2/webhook/')
 app = FastAPI()
 
 
@@ -32,7 +35,7 @@ async def get_upcoming_invoice():
 @app.on_event("startup")
 @repeat_every(seconds=60)  # 1 hour
 def periodically_post_last_events() -> None:
-    webhook_url = 'http://localhost:8003/app/billing/v2/webhook/'
+    webhook_url = WEBHOOK_URL
     json_filename = 'history.json'
     reset_last_event(filename=json_filename)
     events_to_post = []
@@ -74,7 +77,7 @@ def periodically_post_last_events() -> None:
     
 @app.post("/trigger-webhook")
 async def trigger_webhook():
-    webhook_url = 'http://localhost:8003/app/billing/v2/webhook/'
+    webhook_url = WEBHOOK_URL
     json_filename = 'history.json'
     time.sleep(5)
     reset_last_event(filename=json_filename)
@@ -121,7 +124,7 @@ async def trigger_webhook():
     
 @app.get("/manually-trigger-webhook")
 async def trigger_webhook():
-    webhook_url = 'http://localhost:8003/app/billing/v2/webhook/'
+    webhook_url = WEBHOOK_URL
     json_filename = 'history.json'
     last_event = list_events()[0]
     print(last_event)
