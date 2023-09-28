@@ -1,6 +1,7 @@
 import requests
 import time
 import datetime
+import uvicorn
 from decouple import config
 from fastapi import FastAPI
 from fastapi_utils.tasks import repeat_every
@@ -10,6 +11,7 @@ from json_commons import append_to_json_file, get_last_posted_event, list_posted
 
 
 WEBHOOK_URL=config('WEBHOOK_URL' ,'http://localhost:8003/app/billing/v2/webhook/')
+WEBSERVER_PORT=config('WEBSERVER_PORT', 8000)
 app = FastAPI()
 
 
@@ -136,3 +138,7 @@ async def trigger_webhook():
     except Exception as e:
         print(e)
         return {"data":"failed to post to webhook"}
+    
+
+if __name__ == '__main__':
+    uvicorn.run('main:app', host='0.0.0.0', port=WEBSERVER_PORT, reload=True)
